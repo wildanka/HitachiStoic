@@ -5,6 +5,7 @@ import Fuse from "fuse.js";
 const app = express();
 app.use(express.json());
 
+
 // Hardcoded menu (later load from DB)
 const menu = [
   { id: 1, name: "Cheeseburger" },
@@ -12,17 +13,38 @@ const menu = [
   { id: 3, name: "Coke" },
   { id: 4, name: "Chicken Mayo Deluxe" },
   { id: 5, name: "Crystal Cola" },
+  { id: 37708, name: "Burgers Big Mac Double" },
+  { id: 37711, name: "Burgers Big Mac" },
+  { id: 37712, name: "Cheese Burgers" },
+  { id: 37713, name: "Double Cheeseburgers" },
+  { id: 37714, name: "Lemonade" },
+  { id: 37715, name: "Coca cola" },
+  { id: 37716, name: "Dr. Pepper" },
+  { id: 37717, name: "Hot Tea" },
+  { id: 37718, name: "Diet Coke" },
+  { id: 37719, name: "French Fries" },
+  { id: 37720, name: "Raspberry Pie" },
+  { id: 37721, name: "Sausage Burrito" },
+  { id: 37722, name: "Oreo McFlurry" },
+  { id: 37723, name: "Strawberry Shake" },
+  { id: 37724, name: "Vanilla Shake" },
+  { id: 37725, name: "Egg and Cheese Bagel" },
+  { id: 37726, name: "McDouble Burgers" },
+  { id: 37727, name: "Quarter Pounder with Cheese" },
+  { id: 37728, name: "Double Quarter Pounder with Cheese" }
 ];
 
+const menuList = menu.map(m => `- ${m.name}`).join("\n");
+
 // Fuzzy matcher
-const fuse = new Fuse(menu, { keys: ["name"], threshold: 0.3 });
+const fuse = new Fuse(menu, { keys: ["name"], threshold: 0.5 });
 
 async function askLLM(prompt) {
   const response = await fetch("http://localhost:11434/api/generate", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: "mistral",
+      model: "qwen2.5:3b",
       prompt,
       stream: false,
     }),
@@ -35,19 +57,34 @@ async function askLLM(prompt) {
 app.post("/parse", async (req, res) => {
   const text = req.body.text;
 
+  // const prompt = `
+  // Extract food/drink items with their quantities.
+  // Return ONLY valid JSON array. NO explanation.
+  // Format example:
+  // [
+  //   { "raw": "Cheeseburger", "qty": 2 },
+  //   { "raw": "Coke", "qty": 1 }
+  // ]
+  
+  // If quantity missing, set qty = 1.
+  
+  // User text: "${text}"
+  // `;
+
   const prompt = `
-  Extract food/drink items with their quantities.
-  Return ONLY valid JSON array. NO explanation.
-  Format example:
-  [
-    { "raw": "Cheeseburger", "qty": 2 },
-    { "raw": "Coke", "qty": 1 }
-  ]
-  
-  If quantity missing, set qty = 1.
-  
-  User text: "${text}"
-  `;
+You are a food order parser. Match user's spoken order to the closest item from this menu:
+
+MENU:
+${menuList}
+
+Rules:
+- Return ONLY valid JSON array, no explanation
+- Match to the closest menu item name even if the user mispronounces it
+- Format: [{ "raw": "<exact menu name>", "qty": <number> }]
+- If quantity missing, set qty = 1
+
+User order: "${text}"
+`;
 
   const raw = await askLLM(prompt);
 
@@ -84,4 +121,4 @@ app.post("/parse", async (req, res) => {
   res.json({ items: result });
 });
 
-app.listen(3000, () => console.log("Server running on 3000"));
+ app.listen(3000, '0.0.0.0', () => { console.log("Server running on 3000") });
