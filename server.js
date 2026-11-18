@@ -13,15 +13,17 @@ try {
 
 const PORT = Number(process.env.PORT ?? 3000);
 
-// Set OLLAMA_API_KEY to use Ollama's hosted service; leave it unset to talk to
-// a local Ollama. The default host and model follow whichever you picked.
-const API_KEY = process.env.OLLAMA_API_KEY?.trim() || null;
+// Groq's OpenAI-compatible API. Get a key at https://console.groq.com/keys
+const API_KEY = process.env.GROQ_API_KEY?.trim() || null;
 
-const OLLAMA_URL = (
-  process.env.OLLAMA_URL ?? (API_KEY ? "https://ollama.com" : "http://localhost:11434")
-).replace(/\/+$/, "");
+const GROQ_URL = (process.env.GROQ_URL ?? "https://api.groq.com/openai/v1").replace(/\/+$/, "");
 
-const MODEL = process.env.OLLAMA_MODEL ?? (API_KEY ? "gpt-oss:120b-cloud" : "qwen3:4b");
+const MODEL = process.env.GROQ_MODEL ?? "openai/gpt-oss-20b";
+
+if (!API_KEY) {
+  console.error("GROQ_API_KEY is not set. Add it to .env (see .env.example).");
+  process.exit(1);
+}
 
 // Menu (later load from DB). Source: merchant 1501 item export.
 const menu = [
@@ -55,86 +57,92 @@ const menuList = menu.map(m => `- ${m.name}`).join("\n");
 // Fuzzy matcher
 const fuse = new Fuse(menu, { keys: ["name"], threshold: 0.5, includeScore: true });
 
-// Shape we want back from the model. Ollama constrains decoding to this,
-// so the model can't wander off into prose.
+// Shape we want back from the model. Groq's structured outputs need an object
+// at the root, so the order lines live under "items".
 const ORDER_SCHEMA = {
-  type: "array",
-  items: {
-    type: "object",
-    properties: {
-      raw: { type: "string" },
-      qty: { type: "integer" }
-    },
-    required: ["raw", "qty"]
-  }
+  type: "object",
+  properties: {
+    items: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          raw: { type: "string" },
+          qty: { type: "integer" }
+        },
+        required: ["raw", "qty"],
+        additionalProperties: false
+      }
+    }
+  },
+  required: ["items"],
+  additionalProperties: false
 };
 
-async function callOllama(body) {
-  const headers = { "Content-Type": "application/json" };
-  if (API_KEY) headers.Authorization = `Bearer ${API_KEY}`;
-
+async function callGroq(body) {
   try {
-    return await fetch(`${OLLAMA_URL}/api/generate`, {
+    return await fetch(`${GROQ_URL}/chat/completions`, {
       method: "POST",
-      headers,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${API_KEY}`,
+      },
       body: JSON.stringify(body),
     });
   } catch (e) {
-    throw new Error(`cannot reach Ollama at ${OLLAMA_URL}: ${e.message}`);
+    throw new Error(`cannot reach Groq at ${GROQ_URL}: ${e.message}`);
   }
 }
 
 async function askLLM(prompt) {
   const body = {
     model: MODEL,
-    prompt,
-    stream: false,
-    format: ORDER_SCHEMA,
-    think: false, // qwen3 and friends emit <think> blocks otherwise
-    options: { temperature: 0 },
+    messages: [{ role: "user", content: prompt }],
+    temperature: 0,
+    response_format: {
+      type: "json_schema",
+      json_schema: { name: "order", schema: ORDER_SCHEMA },
+    },
   };
 
-  let response = await callOllama(body);
+  let response = await callGroq(body);
 
-  // Some models/endpoints reject `think` outright. Retry once without it
-  // rather than surfacing a confusing 400.
+  // Not every Groq model supports json_schema. Fall back to plain JSON mode,
+  // which they all accept, rather than surfacing a confusing 400.
   if (response.status === 400) {
     const detail = await response.text().catch(() => "");
-    if (/think/i.test(detail)) {
-      const { think, ...withoutThink } = body;
-      response = await callOllama(withoutThink);
+    if (/response_format|json_schema/i.test(detail)) {
+      response = await callGroq({ ...body, response_format: { type: "json_object" } });
     } else {
-      throw new Error(`Ollama returned 400: ${detail.slice(0, 300)}`);
+      throw new Error(`Groq returned 400: ${detail.slice(0, 300)}`);
     }
   }
 
   if (response.status === 401 || response.status === 403) {
-    throw new Error(
-      `Ollama rejected the credentials (${response.status}). Check OLLAMA_API_KEY.`
-    );
+    throw new Error(`Groq rejected the credentials (${response.status}). Check GROQ_API_KEY.`);
   }
 
   if (response.status === 404) {
     const detail = await response.text().catch(() => "");
-    throw new Error(
-      `Model "${MODEL}" not found at ${OLLAMA_URL}. ${detail.slice(0, 200)}`
-    );
+    throw new Error(`Model "${MODEL}" not found on Groq. ${detail.slice(0, 200)}`);
+  }
+
+  if (response.status === 429) {
+    throw new Error("Groq rate limit hit (429). Slow down or upgrade the plan.");
   }
 
   if (!response.ok) {
     const detail = await response.text().catch(() => "");
-    throw new Error(`Ollama returned ${response.status}: ${detail.slice(0, 300)}`);
+    throw new Error(`Groq returned ${response.status}: ${detail.slice(0, 300)}`);
   }
 
   const data = await response.json();
 
-  if (data.error) throw new Error(`Ollama error: ${data.error}`);
-
-  return data.response;
+  return data.choices?.[0]?.message?.content ?? "";
 }
 
 // Models still occasionally wrap output in fences or a think block even with
-// `format` set, so unwrap defensively before parsing.
+// structured output on, so unwrap defensively before parsing.
 function extractJsonArray(raw) {
   if (typeof raw !== "string") return null;
 
@@ -144,7 +152,10 @@ function extractJsonArray(raw) {
   if (fenced) s = fenced[1].trim();
 
   try {
-    return JSON.parse(s);
+    const parsed = JSON.parse(s);
+    // Structured output wraps the list as { items: [...] }
+    if (parsed && !Array.isArray(parsed) && Array.isArray(parsed.items)) return parsed.items;
+    return parsed;
   } catch {
     // fall through
   }
@@ -182,13 +193,13 @@ MENU:
 ${menuList}
 
 Rules:
-- Return ONLY valid JSON array, no explanation
+- Return ONLY valid JSON, no explanation
 - Match to the closest menu item name even if the user mispronounces it
-- Format: [{ "raw": "<exact menu name>", "qty": <number> }]
+- Format: { "items": [{ "raw": "<exact menu name>", "qty": <number> }] }
 - If quantity missing, set qty = 1
 - Only use names that appear verbatim in the MENU above
 - If the user asks for something that is not on the menu, omit it entirely
-- If nothing on the menu matches, return an empty array []
+- If nothing on the menu matches, return { "items": [] }
 
 User order: "${text}"
 `;
@@ -232,6 +243,5 @@ User order: "${text}"
 });
 
 app.listen(PORT, "0.0.0.0", () => {
-  const mode = API_KEY ? "hosted (api key set)" : "local (no api key)";
-  console.log(`Server running on ${PORT} (model: ${MODEL}, ollama: ${OLLAMA_URL}, ${mode})`);
+  console.log(`Server running on ${PORT} (model: ${MODEL}, groq: ${GROQ_URL})`);
 });
