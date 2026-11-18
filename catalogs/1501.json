@@ -1,0 +1,122 @@
+{
+  "outletId": "1501",
+  "updatedAt": "2026-11-18T00:00:00.000Z",
+  "categories": [],
+  "items": [
+    {
+      "id": 84663,
+      "name": "Triple Cheese Burgers",
+      "categoryIds": []
+    },
+    {
+      "id": 84662,
+      "name": "French Fries",
+      "categoryIds": []
+    },
+    {
+      "id": 84661,
+      "name": "Fish Fillet Burgers",
+      "categoryIds": []
+    },
+    {
+      "id": 84660,
+      "name": "Fanta",
+      "categoryIds": []
+    },
+    {
+      "id": 84659,
+      "name": "Double Choco Sundae",
+      "categoryIds": []
+    },
+    {
+      "id": 84658,
+      "name": "Double Cheese Burgers",
+      "categoryIds": []
+    },
+    {
+      "id": 84657,
+      "name": "Diet Coke",
+      "categoryIds": []
+    },
+    {
+      "id": 84656,
+      "name": "Coca Cola",
+      "categoryIds": []
+    },
+    {
+      "id": 84655,
+      "name": "Choco Sundae",
+      "categoryIds": []
+    },
+    {
+      "id": 84654,
+      "name": "Chicken Wrap",
+      "categoryIds": []
+    },
+    {
+      "id": 84653,
+      "name": "Chicken Muffin with Egg",
+      "categoryIds": []
+    },
+    {
+      "id": 84652,
+      "name": "Chicken Burgers Deluxe",
+      "categoryIds": []
+    },
+    {
+      "id": 84651,
+      "name": "Chicken Burgers",
+      "categoryIds": []
+    },
+    {
+      "id": 84650,
+      "name": "Chicken Muffin",
+      "categoryIds": []
+    },
+    {
+      "id": 84649,
+      "name": "Cheese Croissants",
+      "categoryIds": []
+    },
+    {
+      "id": 84648,
+      "name": "Butter Croissants",
+      "categoryIds": []
+    },
+    {
+      "id": 84647,
+      "name": "Breakfast Wrap",
+      "categoryIds": []
+    },
+    {
+      "id": 84646,
+      "name": "Big Breakfast",
+      "categoryIds": []
+    },
+    {
+      "id": 84645,
+      "name": "BigMac Burgers",
+      "categoryIds": []
+    },
+    {
+      "id": 84644,
+      "name": "Beef Burgers Deluxe",
+      "categoryIds": []
+    },
+    {
+      "id": 84643,
+      "name": "Beef Burgers",
+      "categoryIds": []
+    },
+    {
+      "id": 84642,
+      "name": "Banana Muffin",
+      "categoryIds": []
+    },
+    {
+      "id": 84641,
+      "name": "Apple Pie",
+      "categoryIds": []
+    }
+  ]
+}

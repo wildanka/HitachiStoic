@@ -1,5 +1,5 @@
 import express from "express";
-import Fuse from "fuse.js";
+import { CatalogError, getCatalog, normalizeOutletId, updateCatalog } from "./catalog.js";
 
 const app = express();
 app.use(express.json());
@@ -24,38 +24,6 @@ if (!API_KEY) {
   console.error("GROQ_API_KEY is not set. Add it to .env (see .env.example).");
   process.exit(1);
 }
-
-// Menu (later load from DB). Source: merchant 1501 item export.
-const menu = [
-  { id: 84663, name: "Triple Cheese Burgers" },
-  { id: 84662, name: "French Fries" },
-  { id: 84661, name: "Fish Fillet Burgers" },
-  { id: 84660, name: "Fanta" },
-  { id: 84659, name: "Double Choco Sundae" },
-  { id: 84658, name: "Double Cheese Burgers" },
-  { id: 84657, name: "Diet Coke" },
-  { id: 84656, name: "Coca Cola" },
-  { id: 84655, name: "Choco Sundae" },
-  { id: 84654, name: "Chicken Wrap" },
-  { id: 84653, name: "Chicken Muffin with Egg" },
-  { id: 84652, name: "Chicken Burgers Deluxe" },
-  { id: 84651, name: "Chicken Burgers" },
-  { id: 84650, name: "Chicken Muffin" },
-  { id: 84649, name: "Cheese Croissants" },
-  { id: 84648, name: "Butter Croissants" },
-  { id: 84647, name: "Breakfast Wrap" },
-  { id: 84646, name: "Big Breakfast" },
-  { id: 84645, name: "BigMac Burgers" },
-  { id: 84644, name: "Beef Burgers Deluxe" },
-  { id: 84643, name: "Beef Burgers" },
-  { id: 84642, name: "Banana Muffin" },
-  { id: 84641, name: "Apple Pie" }
-];
-
-const menuList = menu.map(m => `- ${m.name}`).join("\n");
-
-// Fuzzy matcher
-const fuse = new Fuse(menu, { keys: ["name"], threshold: 0.5, includeScore: true });
 
 // Shape we want back from the model. Groq's structured outputs need an object
 // at the root, so the order lines live under "items".
@@ -179,12 +147,39 @@ function normalizeQty(value) {
   return Math.min(n, 99);
 }
 
+function sendError(res, e, fallbackStatus = 500) {
+  const status = e instanceof CatalogError ? e.status : fallbackStatus;
+  if (status >= 500) console.error(e.message);
+  return res.status(status).json({ error: e.message });
+}
+
+// Pulls every category (all pages), then every item of every category (all
+// pages), and saves the result as catalogs/<outletId>.json.
+app.post("/update-catalog", async (req, res) => {
+  try {
+    const outletId = normalizeOutletId(req.body?.outletId);
+    const result = await updateCatalog(outletId, req.body);
+    console.log(`Catalog updated for outlet ${outletId}: ${result.itemCount} items`);
+    res.json(result);
+  } catch (e) {
+    sendError(res, e);
+  }
+});
+
 app.post("/parse", async (req, res) => {
   const text = typeof req.body?.text === "string" ? req.body.text.trim() : "";
 
   if (!text) {
     return res.status(400).json({ error: "Body must include a non-empty 'text' string" });
   }
+
+  let catalog;
+  try {
+    catalog = await getCatalog(normalizeOutletId(req.body?.outletId));
+  } catch (e) {
+    return sendError(res, e);
+  }
+  const { menuList, fuse } = catalog;
 
   const prompt = `
 You are a food order parser. Match user's spoken order to the closest item from this menu:

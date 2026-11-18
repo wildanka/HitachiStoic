@@ -1,0 +1,443 @@
+{
+  "outletId": "372",
+  "updatedAt": "2026-11-18T13:37:44.487Z",
+  "categories": [
+    {
+      "id": 2903,
+      "name": "Most Popular",
+      "items": 8
+    },
+    {
+      "id": 2973,
+      "name": "Retail",
+      "items": 11
+    },
+    {
+      "id": 7706,
+      "name": "Subscribe Package BCA Expo",
+      "items": 1
+    },
+    {
+      "id": 8337,
+      "name": "Breakfast",
+      "items": 11
+    },
+    {
+      "id": 2901,
+      "name": "Services",
+      "items": 3
+    },
+    {
+      "id": 10008,
+      "name": "Food",
+      "items": 1
+    },
+    {
+      "id": 2900,
+      "name": "Food and Beverage",
+      "items": 29
+    }
+  ],
+  "items": [
+    {
+      "id": 24301,
+      "name": "Rice Katsu Salted Egg",
+      "categoryIds": [
+        2903,
+        2900
+      ]
+    },
+    {
+      "id": 24302,
+      "name": "Chicken Katsu Curry",
+      "categoryIds": [
+        2903,
+        2900
+      ]
+    },
+    {
+      "id": 24303,
+      "name": "Rice Dry Katsu",
+      "categoryIds": [
+        2903,
+        2900
+      ]
+    },
+    {
+      "id": 24305,
+      "name": "Vegetables Katsu",
+      "categoryIds": [
+        2903,
+        2900
+      ]
+    },
+    {
+      "id": 24306,
+      "name": "Mix Veggy Chicken",
+      "categoryIds": [
+        2903,
+        2900
+      ]
+    },
+    {
+      "id": 24307,
+      "name": "Rice Bowl Katsu",
+      "categoryIds": [
+        2903,
+        2900
+      ]
+    },
+    {
+      "id": 24309,
+      "name": "Curry Katsu Special",
+      "categoryIds": [
+        2903,
+        2900
+      ]
+    },
+    {
+      "id": 70023,
+      "name": "Teh",
+      "categoryIds": [
+        2903,
+        2900
+      ]
+    },
+    {
+      "id": 24630,
+      "name": "Jordan 1 Low SE Flight Club GS",
+      "categoryIds": [
+        2973
+      ]
+    },
+    {
+      "id": 24631,
+      "name": "Nike Air Jordan 1 Mid Chicago Black Toe",
+      "categoryIds": [
+        2973
+      ]
+    },
+    {
+      "id": 24632,
+      "name": "Samba OG Mens Sneaker Shoes  Ftwr White",
+      "categoryIds": [
+        2973
+      ]
+    },
+    {
+      "id": 24633,
+      "name": "Nike Air Max 97 Mens Sneakers Shoes  Summit White",
+      "categoryIds": [
+        2973
+      ]
+    },
+    {
+      "id": 24635,
+      "name": "Converse CDG Play Chuck Taylor 70 High White",
+      "categoryIds": [
+        2973
+      ]
+    },
+    {
+      "id": 85384,
+      "name": "Aqua 330ml",
+      "categoryIds": [
+        2973
+      ]
+    },
+    {
+      "id": 85419,
+      "name": "Teh Botol 250ml",
+      "categoryIds": [
+        2973
+      ]
+    },
+    {
+      "id": 85868,
+      "name": "Big Thunder",
+      "categoryIds": [
+        2973
+      ]
+    },
+    {
+      "id": 86358,
+      "name": "Antis",
+      "categoryIds": [
+        2973
+      ]
+    },
+    {
+      "id": 86359,
+      "name": "Rose Creme Mains",
+      "categoryIds": [
+        2973
+      ]
+    },
+    {
+      "id": 96226,
+      "name": "Kardus",
+      "categoryIds": [
+        2973
+      ]
+    },
+    {
+      "id": 91905,
+      "name": "Subscription BCA EXPO 2026",
+      "categoryIds": [
+        7706
+      ]
+    },
+    {
+      "id": 67320,
+      "name": "Velvet Cheesecake",
+      "categoryIds": [
+        8337
+      ]
+    },
+    {
+      "id": 67321,
+      "name": "Thunder Espresso",
+      "categoryIds": [
+        8337
+      ]
+    },
+    {
+      "id": 67322,
+      "name": "Sweet Pancake",
+      "categoryIds": [
+        8337
+      ]
+    },
+    {
+      "id": 67323,
+      "name": "Sunbreaker Coldbrew Dark Latte",
+      "categoryIds": [
+        8337
+      ]
+    },
+    {
+      "id": 67324,
+      "name": "Strawberry Sunset Latte",
+      "categoryIds": [
+        8337
+      ]
+    },
+    {
+      "id": 67325,
+      "name": "Power Breakfast Sandwich",
+      "categoryIds": [
+        8337
+      ]
+    },
+    {
+      "id": 67326,
+      "name": "Maverick Chicken Sandwich",
+      "categoryIds": [
+        8337
+      ]
+    },
+    {
+      "id": 67327,
+      "name": "Iron Beef Panini",
+      "categoryIds": [
+        8337
+      ]
+    },
+    {
+      "id": 67328,
+      "name": "Syrup French Toast",
+      "categoryIds": [
+        8337
+      ]
+    },
+    {
+      "id": 67329,
+      "name": "Cozy Caramel Latte",
+      "categoryIds": [
+        8337
+      ]
+    },
+    {
+      "id": 67330,
+      "name": "Banger Cheeseburger",
+      "categoryIds": [
+        8337
+      ]
+    },
+    {
+      "id": 24317,
+      "name": "Small Cars Hatchbacks Sedan",
+      "categoryIds": [
+        2901
+      ]
+    },
+    {
+      "id": 24318,
+      "name": "Medium Cars SUV MPV",
+      "categoryIds": [
+        2901
+      ]
+    },
+    {
+      "id": 24319,
+      "name": "Large Cars Pickups Van",
+      "categoryIds": [
+        2901
+      ]
+    },
+    {
+      "id": 100746,
+      "name": "London choco cake slice",
+      "categoryIds": [
+        10008
+      ]
+    },
+    {
+      "id": 24304,
+      "name": "Dry Katsu",
+      "categoryIds": [
+        2900
+      ]
+    },
+    {
+      "id": 24308,
+      "name": "Curry Katsu Mentai",
+      "categoryIds": [
+        2900
+      ]
+    },
+    {
+      "id": 24311,
+      "name": "Potato Katsu",
+      "categoryIds": [
+        2900
+      ]
+    },
+    {
+      "id": 24312,
+      "name": "Sliced Katsu",
+      "categoryIds": [
+        2900
+      ]
+    },
+    {
+      "id": 24313,
+      "name": "Medium Rare Katsu",
+      "categoryIds": [
+        2900
+      ]
+    },
+    {
+      "id": 24314,
+      "name": "Double Burger Katsu",
+      "categoryIds": [
+        2900
+      ]
+    },
+    {
+      "id": 24316,
+      "name": "Sweet Tea",
+      "categoryIds": [
+        2900
+      ]
+    },
+    {
+      "id": 28765,
+      "name": "Donut Gula",
+      "categoryIds": [
+        2900
+      ]
+    },
+    {
+      "id": 41064,
+      "name": "Brownies Viral",
+      "categoryIds": [
+        2900
+      ]
+    },
+    {
+      "id": 50864,
+      "name": "Espresso Great",
+      "categoryIds": [
+        2900
+      ]
+    },
+    {
+      "id": 52278,
+      "name": "Chicken Burger",
+      "categoryIds": [
+        2900
+      ]
+    },
+    {
+      "id": 59698,
+      "name": "Cappucino",
+      "categoryIds": [
+        2900
+      ]
+    },
+    {
+      "id": 65004,
+      "name": "Testing Mantap",
+      "categoryIds": [
+        2900
+      ]
+    },
+    {
+      "id": 65342,
+      "name": "Kopi Cappucino",
+      "categoryIds": [
+        2900
+      ]
+    },
+    {
+      "id": 66099,
+      "name": "Cilok",
+      "categoryIds": [
+        2900
+      ]
+    },
+    {
+      "id": 66816,
+      "name": "Americano Vibes",
+      "categoryIds": [
+        2900
+      ]
+    },
+    {
+      "id": 66818,
+      "name": "Permen",
+      "categoryIds": [
+        2900
+      ]
+    },
+    {
+      "id": 68593,
+      "name": "Testing Produk",
+      "categoryIds": [
+        2900
+      ]
+    },
+    {
+      "id": 84817,
+      "name": "Muffin",
+      "categoryIds": [
+        2900
+      ]
+    },
+    {
+      "id": 93225,
+      "name": "Bakso",
+      "categoryIds": [
+        2900
+      ]
+    },
+    {
+      "id": 94712,
+      "name": "MIEEE REBUNG",
+      "categoryIds": [
+        2900
+      ]
+    }
+  ]
+}

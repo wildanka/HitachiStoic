@@ -31,7 +31,7 @@ npm start
 ```bash
 curl -X POST http://localhost:3000/parse \
   -H "Content-Type: application/json" \
-  -d '{"text": "Give me 2 chees burgers and one crystal"}'
+  -d '{"outletId": "1501", "text": "Give me 2 chees burgers and one crystal"}'
 ```
 
 Response:
@@ -48,6 +48,36 @@ Response:
 `score` is the Fuse.js match distance — lower is a better match. Use it to
 decide whether to confirm an item with the customer before adding it.
 
+## Catalogs
+
+Each outlet's menu lives in `catalogs/<outletId>.json`, and `/parse` uses the
+file for the `outletId` in the request. (`catalogs/1501.json` holds the menu
+that used to be hardcoded.) Create or refresh an outlet's catalog with:
+
+```bash
+curl -X POST http://localhost:3000/update-catalog \
+  -H "Content-Type: application/json" \
+  -d '{
+    "outletId": "1501",
+    "categoryListUrl": "https://.../categories",
+    "categoryItemListUrl": "https://.../items",
+    "authToken": "Bearer ..."
+  }'
+```
+
+What it does:
+
+1. GETs `categoryListUrl?size=50&page0=N` for N = 0, 1, … until the last page
+   (`categoriesPaged.last` / `totalPages`), skipping inactive categories.
+2. For each category, GETs `categoryItemListUrl?categoryId=<id>&size=20&page0=N`
+   until that category's last page, then moves on to the next category.
+3. Merges items by `id` (an item in several categories is stored once, with all
+   its `categoryIds`), drops inactive ones, and writes the file atomically.
+
+`authToken` is sent as-is in the `Authorization` header. If the upstream returns
+no items, the existing file is left untouched. Only one update per outlet runs
+at a time.
+
 ## Configuration
 
 Config comes from the environment, or a `.env` file in the project root (loaded
@@ -59,6 +89,7 @@ automatically — no `dotenv` dependency). Copy `.env.example` to `.env` to star
 | `GROQ_MODEL` | `openai/gpt-oss-20b` | Model used for parsing |
 | `GROQ_URL` | `https://api.groq.com/openai/v1` | Groq OpenAI-compatible endpoint |
 | `PORT` | `3000` | Port the API listens on |
+| `CATALOG_DIR` | `catalogs` | Where outlet catalog files are stored |
 
 The default model supports Groq's structured outputs (`json_schema`). Other
 models are fine too; if one rejects `json_schema` the server falls back to
@@ -79,5 +110,7 @@ GROQ_MODEL=llama-3.3-70b-versatile npm start
 - Requires Node 18+ (uses the built-in `fetch`); developed on Node 24.
 - Requires Node 20.6+ for automatic `.env` loading.
 - `.env` holds your API key and is gitignored. Don't commit it.
+- `/update-catalog` fetches whatever URLs it is given, so don't expose it to
+  untrusted callers.
 - The server binds `0.0.0.0` and has no authentication — it's meant for local
   development, not for exposing on a shared network as-is.
