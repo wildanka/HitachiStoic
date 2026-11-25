@@ -13,19 +13,19 @@ try {
 
 const PORT = Number(process.env.PORT ?? 3000);
 
-// Groq's OpenAI-compatible API. Get a key at https://console.groq.com/keys
-const API_KEY = process.env.GROQ_API_KEY?.trim() || null;
+// OpenAI API. Get a key at https://platform.openai.com/api-keys
+const API_KEY = process.env.OPENAI_KEY?.trim() || null;
 
-const GROQ_URL = (process.env.GROQ_URL ?? "https://api.groq.com/openai/v1").replace(/\/+$/, "");
+const OPENAI_URL = (process.env.OPENAI_URL ?? "https://api.openai.com/v1").replace(/\/+$/, "");
 
-const MODEL = process.env.GROQ_MODEL ?? "openai/gpt-oss-20b";
+const MODEL = process.env.OPENAI_MODEL ?? "gpt-4o-mini";
 
 if (!API_KEY) {
-  console.error("GROQ_API_KEY is not set. Add it to .env (see .env.example).");
+  console.error("OPENAI_KEY is not set. Add it to .env (see .env.example).");
   process.exit(1);
 }
 
-// Shape we want back from the model. Groq's structured outputs need an object
+// Shape we want back from the model. OpenAI's structured outputs need an object
 // at the root, so the order lines live under "items".
 const ORDER_SCHEMA = {
   type: "object",
@@ -47,9 +47,9 @@ const ORDER_SCHEMA = {
   additionalProperties: false
 };
 
-async function callGroq(body) {
+async function callOpenAI(body) {
   try {
-    return await fetch(`${GROQ_URL}/chat/completions`, {
+    return await fetch(`${OPENAI_URL}/chat/completions`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -58,7 +58,7 @@ async function callGroq(body) {
       body: JSON.stringify(body),
     });
   } catch (e) {
-    throw new Error(`cannot reach Groq at ${GROQ_URL}: ${e.message}`);
+    throw new Error(`cannot reach OpenAI at ${OPENAI_URL}: ${e.message}`);
   }
 }
 
@@ -69,39 +69,41 @@ async function askLLM(prompt) {
     temperature: 0,
     response_format: {
       type: "json_schema",
-      json_schema: { name: "order", schema: ORDER_SCHEMA },
+      json_schema: { name: "order", strict: true, schema: ORDER_SCHEMA },
     },
   };
 
-  let response = await callGroq(body);
+  let response = await callOpenAI(body);
 
-  // Not every Groq model supports json_schema. Fall back to plain JSON mode,
+  // Not every OpenAI model supports json_schema. Fall back to plain JSON mode,
   // which they all accept, rather than surfacing a confusing 400.
   if (response.status === 400) {
     const detail = await response.text().catch(() => "");
     if (/response_format|json_schema/i.test(detail)) {
-      response = await callGroq({ ...body, response_format: { type: "json_object" } });
+      response = await callOpenAI({ ...body, response_format: { type: "json_object" } });
     } else {
-      throw new Error(`Groq returned 400: ${detail.slice(0, 300)}`);
+      throw new Error(`OpenAI returned 400: ${detail.slice(0, 300)}`);
     }
   }
 
   if (response.status === 401 || response.status === 403) {
-    throw new Error(`Groq rejected the credentials (${response.status}). Check GROQ_API_KEY.`);
+    throw new Error(`OpenAI rejected the credentials (${response.status}). Check OPENAI_KEY.`);
   }
 
   if (response.status === 404) {
     const detail = await response.text().catch(() => "");
-    throw new Error(`Model "${MODEL}" not found on Groq. ${detail.slice(0, 200)}`);
+    throw new Error(`Model "${MODEL}" not found on OpenAI. ${detail.slice(0, 200)}`);
   }
 
   if (response.status === 429) {
-    throw new Error("Groq rate limit hit (429). Slow down or upgrade the plan.");
+    // OpenAI also uses 429 for an exhausted credit balance, so keep the detail.
+    const detail = await response.text().catch(() => "");
+    throw new Error(`OpenAI rate limit or quota hit (429): ${detail.slice(0, 300)}`);
   }
 
   if (!response.ok) {
     const detail = await response.text().catch(() => "");
-    throw new Error(`Groq returned ${response.status}: ${detail.slice(0, 300)}`);
+    throw new Error(`OpenAI returned ${response.status}: ${detail.slice(0, 300)}`);
   }
 
   const data = await response.json();
@@ -238,5 +240,5 @@ User order: "${text}"
 });
 
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Server running on ${PORT} (model: ${MODEL}, groq: ${GROQ_URL})`);
+  console.log(`Server running on ${PORT} (model: ${MODEL}, openai: ${OPENAI_URL})`);
 });

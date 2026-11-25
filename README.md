@@ -1,17 +1,17 @@
 # Stoic
 
 Parses a spoken/typed food order into structured menu line items, using an LLM
-hosted on [Groq](https://groq.com) for intent extraction and Fuse.js to snap the result onto the
+hosted on [OpenAI](https://openai.com) for intent extraction and Fuse.js to snap the result onto the
 real menu and supply catalog IDs.
 
 ## How to run
 
 1. Clone this repo
-2. Get a Groq API key from https://console.groq.com/keys and put it in `.env`:
+2. Get an OpenAI API key from https://platform.openai.com/api-keys and put it in `.env`:
 
 ```bash
 cp .env.example .env
-# edit .env and set GROQ_API_KEY=...
+# edit .env and set OPENAI_KEY=...
 ```
 
 3. Install dependencies:
@@ -85,24 +85,24 @@ automatically — no `dotenv` dependency). Copy `.env.example` to `.env` to star
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `GROQ_API_KEY` | *(required)* | Groq API key |
-| `GROQ_MODEL` | `openai/gpt-oss-20b` | Model used for parsing |
-| `GROQ_URL` | `https://api.groq.com/openai/v1` | Groq OpenAI-compatible endpoint |
+| `OPENAI_KEY` | *(required)* | OpenAI API key |
+| `OPENAI_MODEL` | `gpt-4o-mini` | Model used for parsing |
+| `OPENAI_URL` | `https://api.openai.com/v1` | OpenAI API endpoint |
 | `PORT` | `3000` | Port the API listens on |
 | `CATALOG_DIR` | `catalogs` | Where outlet catalog files are stored |
 
-The default model supports Groq's structured outputs (`json_schema`). Other
-models are fine too; if one rejects `json_schema` the server falls back to
-plain JSON mode. List the models your key can use:
+The default model supports OpenAI's structured outputs (`json_schema`). If
+another model rejects `json_schema`, the server falls back to plain JSON mode.
+Requests set `temperature: 0`, which OpenAI's reasoning models may reject. List the models your key can use:
 
 ```bash
-curl -s https://api.groq.com/openai/v1/models -H "Authorization: Bearer $GROQ_API_KEY"
+curl -s https://api.openai.com/v1/models -H "Authorization: Bearer $OPENAI_KEY"
 ```
 
 Override per-run:
 
 ```bash
-GROQ_MODEL=llama-3.3-70b-versatile npm start
+OPENAI_MODEL=gpt-4o npm start
 ```
 
 ## Notes
