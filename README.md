@@ -86,14 +86,15 @@ automatically — no `dotenv` dependency). Copy `.env.example` to `.env` to star
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `OPENAI_KEY` | *(required)* | OpenAI API key |
-| `OPENAI_MODEL` | `gpt-4o-mini` | Model used for parsing |
+| `OPENAI_MODEL` | `gpt-6.1-terra` | Model used for parsing |
+| `OPENAI_REASONING_EFFORT` | `low` | Reasoning effort; ignored for GPT-4 and older |
 | `OPENAI_URL` | `https://api.openai.com/v1` | OpenAI API endpoint |
 | `PORT` | `3000` | Port the API listens on |
 | `CATALOG_DIR` | `catalogs` | Where outlet catalog files are stored |
 
 The default model supports OpenAI's structured outputs (`json_schema`). If
 another model rejects `json_schema`, the server falls back to plain JSON mode.
-Requests set `temperature: 0`, which OpenAI's reasoning models may reject. List the models your key can use:
+GPT-4 and older are sent `temperature: 0`; newer models get `reasoning_effort`. List the models your key can use:
 
 ```bash
 curl -s https://api.openai.com/v1/models -H "Authorization: Bearer $OPENAI_KEY"
@@ -102,7 +103,7 @@ curl -s https://api.openai.com/v1/models -H "Authorization: Bearer $OPENAI_KEY"
 Override per-run:
 
 ```bash
-OPENAI_MODEL=gpt-4o npm start
+OPENAI_MODEL=gpt-6.2-sol npm start
 ```
 
 ## Notes

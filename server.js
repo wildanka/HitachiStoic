@@ -18,7 +18,14 @@ const API_KEY = process.env.OPENAI_KEY?.trim() || null;
 
 const OPENAI_URL = (process.env.OPENAI_URL ?? "https://api.openai.com/v1").replace(/\/+$/, "");
 
-const MODEL = process.env.OPENAI_MODEL ?? "gpt-4o-mini";
+const MODEL = process.env.OPENAI_MODEL ?? "gpt-6.1-terra";
+
+// Reasoning models (gpt-5 and later, o-series) take reasoning_effort and may
+// reject temperature; older models are the other way round.
+const REASONING_EFFORT = process.env.OPENAI_REASONING_EFFORT?.trim() || "low";
+const SAMPLING = /^gpt-[34]/.test(MODEL)
+  ? { temperature: 0 }
+  : { reasoning_effort: REASONING_EFFORT };
 
 if (!API_KEY) {
   console.error("OPENAI_KEY is not set. Add it to .env (see .env.example).");
@@ -66,7 +73,7 @@ async function askLLM(prompt) {
   const body = {
     model: MODEL,
     messages: [{ role: "user", content: prompt }],
-    temperature: 0,
+    ...SAMPLING,
     response_format: {
       type: "json_schema",
       json_schema: { name: "order", strict: true, schema: ORDER_SCHEMA },
@@ -184,18 +191,22 @@ app.post("/parse", async (req, res) => {
   const { menuList, fuse } = catalog;
 
   const prompt = `
-You are a food order parser. Match user's spoken order to the closest item from this menu:
+You are a food order parser for an Indonesian outlet. The order below is automatic speech recognition (ASR) output from an Indonesian speaker. Menu names may be English, Japanese, French or Indonesian, spoken with an Indonesian accent, and the ASR often mishears them as unrelated words that merely SOUND similar.
 
 MENU:
 ${menuList}
 
 Rules:
 - Return ONLY valid JSON, no explanation
-- Match to the closest menu item name even if the user mispronounces it
 - Format: { "items": [{ "raw": "<exact menu name>", "qty": <number> }] }
+- Indonesian order structure: "<item> <number>" or "<number> <item>", joined by "sama", "dan", "terus", "tambah". The suffix "-nya" is a particle. A segment paired with a number is usually an order line.
+- For each order line, if the words are not a menu name, read them aloud and compare the SOUND, syllable by syllable, with the menu names. Choose the menu item that sounds closest.
+- Words may be partially lost: the line may contain only the sound of the first part of a menu name.
+- Drinks: "es teh"/"teh" means tea; prefer the plain item when no variant is said.
+- A clearly heard, real product that is not on the menu must be omitted, not substituted.
+- Ignore table numbers, greetings, thanks and small talk ("oke", "ditunggu sebentar", "terima kasih").
 - If quantity missing, set qty = 1
 - Only use names that appear verbatim in the MENU above
-- If the user asks for something that is not on the menu, omit it entirely
 - If nothing on the menu matches, return { "items": [] }
 
 User order: "${text}"
